@@ -2,6 +2,8 @@ package com.studyhive.spring_boot_docker;
 
 import jakarta.persistence.*;
 
+import java.time.OffsetDateTime;
+
 @Entity
 @Table(name = "study_group")
 public class StudyGroup {
@@ -20,6 +22,17 @@ public class StudyGroup {
     private String location;
     private String meetingMode;
     private Integer maxMembers;
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Column(name = "created_at", updatable = false)
+    private OffsetDateTime createdAt;
 
     public Long getId() {
         return id;
