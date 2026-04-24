@@ -4,7 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.core.annotation.AuthenticationPrincipal; // Fixes AuthenticationPrincipal error
+import org.springframework.security.oauth2.jwt.Jwt;
 @RestController
 @RequestMapping("/api/groups")
 public class GroupController {
@@ -15,11 +16,11 @@ public class GroupController {
     @PostMapping
     public ResponseEntity<StudyGroup> createGroup(@RequestBody StudyGroup group, @AuthenticationPrincipal Jwt jwt) {
 
-        String userId = jwt.getSubject();
-        group.setCreatorId(userId);
+        //String userId = jwt.getSubject();
+        group.setCreatorId(jwt.getSubject());
 
         StudyGroup savedGroups = groupRepository.save(group);
-        return new ResponseEntity<>(savedGroups, HttpStatus.OK);
+        return new ResponseEntity<>(savedGroups, HttpStatus.CREATED);
     }
     //--Implement Deletion
     @DeleteMapping("/{id}")
@@ -27,10 +28,10 @@ public class GroupController {
         String currentUserID = jwt.getSubject();
 
         return groupRepository.findById(id)
-                .map(group ->{
-                    //--Will check if the logged-in user is actually the creator
-                    if(group.getCreatorId().equals(currentUserID)){
-                        return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+                .map(group -> {
+                    // Ensure the IDs match before deleting
+                    if (!group.getCreatorId().equals(currentUserID)) {
+                        return new ResponseEntity<Void>(HttpStatus.FORBIDDEN);
                     }
                     groupRepository.delete(group);
                     return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
