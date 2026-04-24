@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class StudyGroupRepository implements JpaRepository<StudyGroup, Long> {
+public interface StudyGroupRepository extends JpaRepository<StudyGroup, Long> {
+    //--should be empty. Spring should provide safe, findId and deleteid auto
+
 
 }
