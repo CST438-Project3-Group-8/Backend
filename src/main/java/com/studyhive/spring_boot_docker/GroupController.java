@@ -6,6 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal; // Fixes AuthenticationPrincipal error
 import org.springframework.security.oauth2.jwt.Jwt;
+
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/groups")
 public class GroupController {
@@ -36,6 +39,19 @@ public class GroupController {
                     groupRepository.delete(group);
                     return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
                 })
+                .orElse(ResponseEntity.notFound().build());
+    }
+    //1. Get all study groups
+    @GetMapping
+    public ResponseEntity<List<StudyGroup>>getAllGroups(){
+        List<StudyGroup> groups = groupRepository.findAll();
+        return new ResponseEntity<>(groups, HttpStatus.OK);
+    }
+    //2. Get a single group by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<StudyGroup> getGroupById(@PathVariable Long id){
+        return groupRepository.findById(id)
+                .map(group -> new ResponseEntity<>(group, HttpStatus.OK))
                 .orElse(ResponseEntity.notFound().build());
     }
 }
