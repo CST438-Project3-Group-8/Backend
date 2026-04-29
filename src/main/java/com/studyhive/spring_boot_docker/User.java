@@ -1,12 +1,13 @@
-package Entities;
+package com.studyhive.spring_boot_docker;
 
 import java.util.Objects;
-//TODO: figure out why jakarta wont work
+import jakarta.persistence.*;
 
-//@Entity
+@Entity
+@Table(name = "user")
 public class User {
-    //@Id
-    //@GeneratedValue
+    @Id
+    @GeneratedValue
     private int id;
     private String name;
     private String email;
