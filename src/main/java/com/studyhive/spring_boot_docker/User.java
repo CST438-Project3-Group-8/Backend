@@ -3,29 +3,41 @@ package com.studyhive.spring_boot_docker;
 import java.util.Objects;
 import jakarta.persistence.*;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 public class User {
+
     @Id
-    @GeneratedValue
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @NotBlank
+    @Column(nullable = false, length = 100)
     private String name;
+
+    @NotBlank
+    @Email
+    @Column(nullable = false, unique = true, length = 255)
     private String email;
-    private String oauthProvider;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private OauthProvider oauthProvider;
+
+    @Size(max = 500)
+    @Column(length = 500)
     private String bio;
-    private String availability;
 
-    public User(String name, String email) {
-        this.name = name;
-        this.email = email;
+    protected User() {
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -44,11 +56,11 @@ public class User {
         this.email = email;
     }
 
-    public String getOauthProvider() {
+    public OauthProvider getOauthProvider() {
         return oauthProvider;
     }
 
-    public void setOauthProvider(String oauthProvider) {
+    public void setOauthProvider(OauthProvider oauthProvider) {
         this.oauthProvider = oauthProvider;
     }
 
@@ -60,22 +72,15 @@ public class User {
         this.bio = bio;
     }
 
-    public String getAvailability() {
-        return availability;
-    }
-
-    public void setAvailability(String availability) {
-        this.availability = availability;
-    }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof User user)) return false;
-        return id == user.id && Objects.equals(name, user.name) && Objects.equals(email, user.email) && Objects.equals(oauthProvider, user.oauthProvider) && Objects.equals(bio, user.bio) && Objects.equals(availability, user.availability);
+        return Objects.equals(id, user.id) && Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, email, oauthProvider, bio, availability);
+        return Objects.hash(id, email);
     }
 }
