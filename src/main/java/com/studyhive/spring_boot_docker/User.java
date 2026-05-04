@@ -14,7 +14,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @NotBlank
     @Column(nullable = false, length = 100)
@@ -36,7 +36,7 @@ public class User {
     protected User() {
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
