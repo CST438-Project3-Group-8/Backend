@@ -1,0 +1,16 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+### Create a New Study Group
+POST http://localhost:8080/api/groups
+//POST http://127.0.0.1:8080/api/groups
+Content-Type: application/json
+
+{
+  "title": "Database Project Group2",
+  "description": "Working on Project 3",
+  "courseId": 6,
+  "creatorId": "00000000-0000-0000-0000-000000000000",
+  "maxMembers": 5
+}
