@@ -14,53 +14,57 @@ public class CourseDataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (courseRepository.count() == 0) {
-            courseRepository.save(new Course("CST 201", "Media Tools I", "CST"));
-            courseRepository.save(new Course("CST 202", "Drawing for Digital Media", "CST"));
-            courseRepository.save(new Course("CST 202L", "Drawing for Digital Media Lab", "CST"));
-            courseRepository.save(new Course("CST 205", "Multimedia Design and Programming", "CST"));
-            courseRepository.save(new Course("CST 226", "Digital Photography", "CST"));
-            courseRepository.save(new Course("CST 227", "Design Fundamentals", "CST"));
-            courseRepository.save(new Course("CST 230", "Media Tools II", "CST"));
-            courseRepository.save(new Course("CST 231", "Problem-Solving/Programming", "CST"));
-            courseRepository.save(new Course("CST 237", "Intro to Computer Architecture", "CST"));
-            courseRepository.save(new Course("CST 238", "Introduction to Data Structures", "CST"));
-            courseRepository.save(new Course("CST 251", "Web Tools", "CST"));
-            courseRepository.save(new Course("CST 271", "Digital Culture", "CST"));
-            courseRepository.save(new Course("CST 274", "History of Communication Technologies and Politics in America", "CST"));
-            courseRepository.save(new Course("CST 300", "Graduation Writing Assessment for Computing and Design", "CST"));
-            courseRepository.save(new Course("CST 302", "History of Communication Design", "CST"));
-            courseRepository.save(new Course("CST 304", "Typography", "CST"));
-            courseRepository.save(new Course("CST 311", "Introduction to Computer Networks", "CST"));
-            courseRepository.save(new Course("CST 315", "Introduction to Cybersecurity", "CST"));
-            courseRepository.save(new Course("CST 316", "Computing for Designers", "CST"));
-            courseRepository.save(new Course("CST 321", "Game Design and Interactive Media I", "CST"));
-            courseRepository.save(new Course("CST 325", "Graphics Programming", "CST"));
-            courseRepository.save(new Course("CST 326", "Game Development", "CST"));
-            courseRepository.save(new Course("CST 327", "Experimental Typography", "CST"));
-            courseRepository.save(new Course("CST 328", "Digital Art and Design", "CST"));
-            courseRepository.save(new Course("CST 329", "Reasoning with Logic", "CST"));
-            courseRepository.save(new Course("CST 334", "Operating Systems", "CST"));
-            courseRepository.save(new Course("CST 336", "Internet Programming", "CST"));
-            courseRepository.save(new Course("CST 338", "Software Design", "CST"));
-            courseRepository.save(new Course("CST 345", "Visual Thinking", "CST"));
-            courseRepository.save(new Course("CST 346", "Human-Computer Interaction", "CST"));
-            courseRepository.save(new Course("CST 349", "Computer Science Proseminar", "CST"));
-            courseRepository.save(new Course("CST 350", "Web Scripting", "CST"));
-            courseRepository.save(new Course("CST 363", "Introduction to Database Systems", "CST"));
-            courseRepository.save(new Course("CST 370", "Design and Analysis of Algorithms", "CST"));
-            courseRepository.save(new Course("CST 380", "Mobile and Ubiquitous Computing", "CST"));
-            courseRepository.save(new Course("CST 383", "Introduction to Data Science", "CST"));
-            courseRepository.save(new Course("CST 395", "Special Topics", "CST"));
-            courseRepository.save(new Course("CST 397", "Independent Study", "CST"));
-            courseRepository.save(new Course("CST 404", "Publication Design", "CST"));
-            courseRepository.save(new Course("CST 422", "Level Design", "CST"));
-            courseRepository.save(new Course("CST 423", "Character Animation", "CST"));
-            courseRepository.save(new Course("CST 438", "Software Engineering", "CST"));
-            courseRepository.save(new Course("CST 446", "User Research and Experience Design", "CST"));
-            courseRepository.save(new Course("CST 462S", "Race, Gender, Class in the Digital World", "CST"));
-            courseRepository.save(new Course("CST 498", "Communication Design Capstone", "CST"));
-            courseRepository.save(new Course("CST 499", "Computer Science Capstone", "CST"));
+        saveIfMissing("CST 201", "Media Tools I", "CST");
+        saveIfMissing("CST 202", "Drawing for Digital Media", "CST");
+        saveIfMissing("CST 202L", "Drawing for Digital Media Lab", "CST");
+        saveIfMissing("CST 205", "Multimedia Design and Programming", "CST");
+        saveIfMissing("CST 226", "Digital Photography", "CST");
+        saveIfMissing("CST 227", "Design Fundamentals", "CST");
+        saveIfMissing("CST 230", "Media Tools II", "CST");
+        saveIfMissing("CST 231", "Problem-Solving/Programming", "CST");
+        saveIfMissing("CST 237", "Intro to Computer Architecture", "CST");
+        saveIfMissing("CST 238", "Introduction to Data Structures", "CST");
+        saveIfMissing("CST 251", "Web Tools", "CST");
+        saveIfMissing("CST 271", "Digital Culture", "CST");
+        saveIfMissing("CST 274", "History of Communication Technologies and Politics in America", "CST");
+        saveIfMissing("CST 300", "Graduation Writing Assessment for Computing and Design", "CST");
+        saveIfMissing("CST 302", "History of Communication Design", "CST");
+        saveIfMissing("CST 304", "Typography", "CST");
+        saveIfMissing("CST 311", "Introduction to Computer Networks", "CST");
+        saveIfMissing("CST 315", "Introduction to Cybersecurity", "CST");
+        saveIfMissing("CST 316", "Computing for Designers", "CST");
+        saveIfMissing("CST 321", "Game Design and Interactive Media I", "CST");
+        saveIfMissing("CST 325", "Graphics Programming", "CST");
+        saveIfMissing("CST 326", "Game Development", "CST");
+        saveIfMissing("CST 327", "Experimental Typography", "CST");
+        saveIfMissing("CST 328", "Digital Art and Design", "CST");
+        saveIfMissing("CST 329", "Reasoning with Logic", "CST");
+        saveIfMissing("CST 334", "Operating Systems", "CST");
+        saveIfMissing("CST 336", "Internet Programming", "CST");
+        saveIfMissing("CST 338", "Software Design", "CST");
+        saveIfMissing("CST 345", "Visual Thinking", "CST");
+        saveIfMissing("CST 346", "Human-Computer Interaction", "CST");
+        saveIfMissing("CST 349", "Computer Science Proseminar", "CST");
+        saveIfMissing("CST 350", "Web Scripting", "CST");
+        saveIfMissing("CST 363", "Introduction to Database Systems", "CST");
+        saveIfMissing("CST 370", "Design and Analysis of Algorithms", "CST");
+        saveIfMissing("CST 380", "Mobile and Ubiquitous Computing", "CST");
+        saveIfMissing("CST 383", "Introduction to Data Science", "CST");
+        saveIfMissing("CST 395", "Special Topics", "CST");
+        saveIfMissing("CST 397", "Independent Study", "CST");
+        saveIfMissing("CST 404", "Publication Design", "CST");
+        saveIfMissing("CST 422", "Level Design", "CST");
+        saveIfMissing("CST 423", "Character Animation", "CST");
+        saveIfMissing("CST 438", "Software Engineering", "CST");
+        saveIfMissing("CST 446", "User Research and Experience Design", "CST");
+        saveIfMissing("CST 462S", "Race, Gender, Class in the Digital World", "CST");
+        saveIfMissing("CST 498", "Communication Design Capstone", "CST");
+        saveIfMissing("CST 499", "Computer Science Capstone", "CST");
+    }
+
+    private void saveIfMissing(String code, String title, String subject) {
+        if (!courseRepository.existsByCode(code)) {
+            courseRepository.save(new Course(code, title, subject));
         }
     }
 }
