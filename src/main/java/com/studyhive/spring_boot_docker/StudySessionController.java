@@ -24,19 +24,28 @@ public class StudySessionController {
     @Autowired
     private StudyGroupRepository studyGroupRepository;
 
-    @PostMapping
-    public ResponseEntity<StudySession> createSession(@RequestBody StudySession studySession, @AuthenticationPrincipal Jwt jwt) {
-        return studyGroupRepository.findById(studySession.getGroupId())
-                .map(group -> {
-                    if (!group.getCreatorId().equals(jwt.getSubject())) {
-                        return new ResponseEntity<StudySession>(HttpStatus.FORBIDDEN);
-                    }
-
-                    StudySession savedSession = studySessionRepository.save(studySession);
-                    return new ResponseEntity<>(savedSession, HttpStatus.CREATED);
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
+//    @PostMapping
+//    public ResponseEntity<StudySession> createSession(@RequestBody StudySession studySession, @AuthenticationPrincipal Jwt jwt) {
+//        return studyGroupRepository.findById(studySession.getGroupId())
+//                .map(group -> {
+//                    if (!group.getCreatorId().equals(jwt.getSubject())) {
+//                        return new ResponseEntity<StudySession>(HttpStatus.FORBIDDEN);
+//                    }
+//
+//                    StudySession savedSession = studySessionRepository.save(studySession);
+//                    return new ResponseEntity<>(savedSession, HttpStatus.CREATED);
+//                })
+//                .orElse(ResponseEntity.notFound().build());
+//    }
+@PostMapping
+public ResponseEntity<StudySession> createSession(@RequestBody StudySession studySession) {
+    return studyGroupRepository.findById(studySession.getGroupId())
+            .map(group -> {
+                StudySession savedSession = studySessionRepository.save(studySession);
+                return new ResponseEntity<>(savedSession, HttpStatus.CREATED);
+            })
+            .orElse(ResponseEntity.notFound().build());
+}
 
     @GetMapping("/group/{groupId}")
     public ResponseEntity<List<StudySession>> getSessionsByGroup(@PathVariable Long groupId) {
