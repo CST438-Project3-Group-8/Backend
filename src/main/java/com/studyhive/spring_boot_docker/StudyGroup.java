@@ -26,6 +26,10 @@ public class StudyGroup {
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
+    @PrePersist
+    protected void onCreate() {
+        createdAt = OffsetDateTime.now();
+    }
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
