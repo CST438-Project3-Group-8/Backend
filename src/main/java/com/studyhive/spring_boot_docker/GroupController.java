@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal; // Fixes AuthenticationPrincipal error
 import org.springframework.security.oauth2.jwt.Jwt;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class GroupController {
 //
 //    }
     @PostMapping
-    public ResponseEntity<StudyGroup> createGroup(@RequestBody StudyGroup group) {
+    public ResponseEntity<StudyGroup> createGroup(@Valid @RequestBody StudyGroup group) {
         group.setCreatorId("test-user-id");
         StudyGroup savedGroup = groupRepository.save(group);
         return new ResponseEntity<>(savedGroup, HttpStatus.CREATED);
@@ -76,7 +77,7 @@ public class GroupController {
     @PutMapping("/{id}")
     public ResponseEntity<StudyGroup> updateGroup(
             @PathVariable Long id,
-            @RequestBody StudyGroup updatedGroup
+            @Valid @RequestBody StudyGroup updatedGroup
     ) {
         return groupRepository.findById(id)
                 .map(group -> {
