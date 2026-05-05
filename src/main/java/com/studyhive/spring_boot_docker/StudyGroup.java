@@ -3,6 +3,9 @@ package com.studyhive.spring_boot_docker;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "study_group")
@@ -10,17 +13,30 @@ public class StudyGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotBlank
+    @NotBlank
     private String title;
+
+    @NotBlank
     private String description;
 
+    @NotNull
     @Column(name = "course_id")
     private Long courseId;
 
     @Column(name = "creator_id")
     private String creatorId;
-    
+
+    @NotBlank
     private String location;
+
+    @NotBlank
+    @Column(name = "meeting_mode")
     private String meetingMode;
+
+    @NotNull
+    @Min(1)
+    @Column(name = "max_members")
     private Integer maxMembers;
 
     public OffsetDateTime getCreatedAt() {
