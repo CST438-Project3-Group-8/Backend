@@ -3,7 +3,6 @@ package com.studyhive.spring_boot_docker;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
