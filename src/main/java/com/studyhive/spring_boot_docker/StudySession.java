@@ -7,6 +7,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+
 import java.time.OffsetDateTime;
 
 @Entity
@@ -16,17 +21,38 @@ public class StudySession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
     @Column(name = "group_id")
     private Long groupId;
 
+    @NotBlank
     private String title;
+
+    @NotBlank
     private String topic;
 
+    @NotNull
     @Column(name = "scheduled_at")
     private OffsetDateTime scheduledAt;
 
+    @NotBlank
     private String location;
+
     private String notes;
+
+    @NotNull
+    @Min(1)
+    private Integer durationMinutes;
+
+
+
+    public Integer getDurationMinutes() {
+        return durationMinutes;
+    }
+
+    public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
 
     public Long getId() {
         return id;
