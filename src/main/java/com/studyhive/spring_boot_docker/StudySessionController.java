@@ -5,14 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -38,7 +32,7 @@ public class StudySessionController {
 //                .orElse(ResponseEntity.notFound().build());
 //    }
 @PostMapping
-public ResponseEntity<StudySession> createSession(@RequestBody StudySession studySession) {
+public ResponseEntity<StudySession> createSession(@Valid @RequestBody StudySession studySession) {
     return studyGroupRepository.findById(studySession.getGroupId())
             .map(group -> {
                 StudySession savedSession = studySessionRepository.save(studySession);
@@ -53,19 +47,49 @@ public ResponseEntity<StudySession> createSession(@RequestBody StudySession stud
         return new ResponseEntity<>(studySessions, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSession(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        return studySessionRepository.findById(id)
-                .map(studySession -> studyGroupRepository.findById(studySession.getGroupId())
-                        .map(group -> {
-                            if (!group.getCreatorId().equals(jwt.getSubject())) {
-                                return new ResponseEntity<Void>(HttpStatus.FORBIDDEN);
-                            }
-
-                            studySessionRepository.delete(studySession);
-                            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
-                        })
-                        .orElse(ResponseEntity.notFound().build()))
-                .orElse(ResponseEntity.notFound().build());
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteSession(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+//        return studySessionRepository.findById(id)
+//                .map(studySession -> studyGroupRepository.findById(studySession.getGroupId())
+//                        .map(group -> {
+//                            if (!group.getCreatorId().equals(jwt.getSubject())) {
+//                                return new ResponseEntity<Void>(HttpStatus.FORBIDDEN);
+//                            }
+//
+//                            studySessionRepository.delete(studySession);
+//                            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+//                        })
+//                        .orElse(ResponseEntity.notFound().build()))
+//                .orElse(ResponseEntity.notFound().build());
+//    }
+    //for local testing
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
+    if (!studySessionRepository.existsById(id)) {
+        return ResponseEntity.notFound().build();
     }
+
+    studySessionRepository.deleteById(id);
+    return ResponseEntity.noContent().build();
+}
+//to update session
+@PutMapping("/{id}")
+public ResponseEntity<StudySession> updateSession(
+        @PathVariable Long id,
+        @RequestBody StudySession updatedSession
+) {
+    return studySessionRepository.findById(id)
+            .map(session -> {
+                session.setTitle(updatedSession.getTitle());
+                session.setTopic(updatedSession.getTopic());
+                session.setScheduledAt(updatedSession.getScheduledAt());
+                session.setLocation(updatedSession.getLocation());
+                session.setNotes(updatedSession.getNotes());
+                session.setDurationMinutes(updatedSession.getDurationMinutes());
+
+                StudySession savedSession = studySessionRepository.save(session);
+                return ResponseEntity.ok(savedSession);
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+}
 }
