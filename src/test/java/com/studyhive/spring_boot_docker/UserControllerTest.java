@@ -134,6 +134,52 @@ class UserControllerTest {
     }
 
     @Test
+    void createUserFallsBackToEmailProviderWhenSocialProviderIsAmbiguous() {
+        when(userRepository.findByUserId("user-123")).thenReturn(List.of());
+        when(userRepository.findByEmail("linked@example.com")).thenReturn(java.util.Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ResponseEntity<User> response = userController.createUser(
+                null,
+                jwt(Map.of(
+                        "sub", "user-123",
+                        "email", "linked@example.com",
+                        "app_metadata", Map.of(
+                                "provider", "email",
+                                "providers", List.of("email", "google", "github")
+                        )
+                ))
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getOauthProvider()).isEqualTo(OauthProvider.EMAIL);
+    }
+
+    @Test
+    void createUserPrefersSingleSocialProviderFromProvidersList() {
+        when(userRepository.findByUserId("user-123")).thenReturn(List.of());
+        when(userRepository.findByEmail("social@example.com")).thenReturn(java.util.Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ResponseEntity<User> response = userController.createUser(
+                null,
+                jwt(Map.of(
+                        "sub", "user-123",
+                        "email", "social@example.com",
+                        "app_metadata", Map.of(
+                                "provider", "email",
+                                "providers", List.of("email", "google")
+                        )
+                ))
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getOauthProvider()).isEqualTo(OauthProvider.GOOGLE);
+    }
+
+    @Test
     void deleteUserReturnsNotFoundWhenUserDoesNotExist() {
         when(userRepository.existsById(99L)).thenReturn(false);
 
