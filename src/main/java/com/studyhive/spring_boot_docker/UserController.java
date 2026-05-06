@@ -3,11 +3,13 @@ package com.studyhive.spring_boot_docker;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,6 +38,33 @@ public class UserController {
         );
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<User> getMyProfile(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        List<User> found = userRepository.findByUserId(jwt.getSubject());
+        if (found.isEmpty()) return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(found.get(0));
+    }
+
+
+    @PutMapping
+    public ResponseEntity<User> updateProfile(
+            @Valid @RequestBody UpdateProfileRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        List<User> found = userRepository.findByUserId(jwt.getSubject());
+        if (found.isEmpty()) return ResponseEntity.notFound().build();
+
+        User user = found.get(0);
+        user.setName(request.name());
+        user.setBio(request.bio());
+
+        return ResponseEntity.ok(userRepository.save(user));
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {
