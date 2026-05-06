@@ -1,8 +1,11 @@
 package com.studyhive.spring_boot_docker;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "study_group")
@@ -33,6 +36,10 @@ public class StudyGroup {
 
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "group")
+    private List<StudySession> sessions = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -96,5 +103,9 @@ public class StudyGroup {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public List<StudySession> getSessions() {
+        return sessions;
     }
 }
