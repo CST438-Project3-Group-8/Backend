@@ -9,7 +9,8 @@ public record StudySessionResponse(
         String topic,
         OffsetDateTime scheduledAt,
         String location,
-        String notes
+        String notes,
+        Integer durationMinutes
 ) {
     public static StudySessionResponse fromEntity(StudySession studySession) {
         return new StudySessionResponse(
@@ -19,7 +20,8 @@ public record StudySessionResponse(
                 studySession.getTopic(),
                 studySession.getScheduledAt(),
                 studySession.getLocation(),
-                studySession.getNotes()
+                studySession.getNotes(),
+                studySession.getDurationMinutes()
         );
     }
 }

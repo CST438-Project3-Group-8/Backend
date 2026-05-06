@@ -11,6 +11,7 @@ public record StudySessionRequest(
         String topic,
         @NotNull OffsetDateTime scheduledAt,
         String location,
-        String notes
+        String notes,
+        Integer durationMinutes
 ) {
 }

@@ -99,6 +99,7 @@ public class StudySessionController {
                                 existingSession.setScheduledAt(request.scheduledAt());
                                 existingSession.setLocation(request.location());
                                 existingSession.setNotes(request.notes());
+                                existingSession.setDurationMinutes(request.durationMinutes());
 
                                 StudySession savedSession = studySessionRepository.save(existingSession);
                                 return new ResponseEntity<>(StudySessionResponse.fromEntity(savedSession), HttpStatus.OK);
@@ -134,6 +135,7 @@ public class StudySessionController {
         studySession.setScheduledAt(request.scheduledAt());
         studySession.setLocation(request.location());
         studySession.setNotes(request.notes());
+        studySession.setDurationMinutes(request.durationMinutes());
         return studySession;
     }
 }

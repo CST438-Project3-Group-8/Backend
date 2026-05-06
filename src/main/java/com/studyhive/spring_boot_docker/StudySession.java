@@ -31,6 +31,9 @@ public class StudySession {
 
     private String location;
     private String notes;
+    
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
 
     public Long getId() {
         return id;
@@ -82,5 +85,13 @@ public class StudySession {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public Integer getDurationMinutes() {
+        return durationMinutes;
+    }
+
+    public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
     }
 }
