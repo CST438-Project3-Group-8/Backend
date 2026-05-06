@@ -1,16 +1,6 @@
 package com.studyhive.spring_boot_docker;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
-@Entity
-public class StudyGroup {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class CreateGroupRequest {
 
     private String groupName;
     private String courseCode;
@@ -19,13 +9,8 @@ public class StudyGroup {
     private String meetingMode;
     private String location;
     private String schedule;
-    private Long creatorId;
 
-    public StudyGroup() {
-    }
-
-    public Long getId() {
-        return id;
+    public CreateGroupRequest() {
     }
 
     public String getGroupName() {
@@ -82,13 +67,5 @@ public class StudyGroup {
 
     public void setSchedule(String schedule) {
         this.schedule = schedule;
-    }
-
-    public Long getCreatorId() {
-        return creatorId;
-    }
-
-    public void setCreatorId(Long creatorId) {
-        this.creatorId = creatorId;
     }
 }
