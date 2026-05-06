@@ -19,11 +19,15 @@ class UserControllerTest {
 
     private UserController userController;
     private UserRepository userRepository;
+    private UserCourseRepository userCourseRepository;
+    private CourseRepository courseRepository;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
-        userController = new UserController(userRepository);
+        userCourseRepository = mock(UserCourseRepository.class);
+        courseRepository = mock(CourseRepository.class);
+        userController = new UserController(userRepository, userCourseRepository, courseRepository);
     }
 
     @Test
