@@ -16,6 +16,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    private String userId;
+
     @NotBlank
     @Column(nullable = false, length = 100)
     private String name;
@@ -38,6 +40,14 @@ public class User {
 
     public Integer getId() {
         return id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getName() {
