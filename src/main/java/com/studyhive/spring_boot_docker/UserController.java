@@ -35,9 +35,7 @@ public class UserController {
         if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         User incomingUser = user != null ? user : new User();
-        User persistedUser = userRepository.findByUserId(jwt.getSubject())
-                .stream()
-                .findFirst()
+        User persistedUser = findExistingUser(jwt)
                 .orElseGet(User::new);
 
         persistedUser.setUserId(jwt.getSubject());
@@ -153,10 +151,15 @@ public class UserController {
     }
 
     private User findOrCreateCurrentUser(Jwt jwt) {
+        return findExistingUser(jwt)
+                .orElseGet(() -> userRepository.save(newUserFromJwt(jwt)));
+    }
+
+    private java.util.Optional<User> findExistingUser(Jwt jwt) {
         return userRepository.findByUserId(jwt.getSubject())
                 .stream()
                 .findFirst()
-                .orElseGet(() -> userRepository.save(newUserFromJwt(jwt)));
+                .or(() -> userRepository.findByEmail(jwt.getClaimAsString("email")));
     }
 
     private User newUserFromJwt(Jwt jwt) {
