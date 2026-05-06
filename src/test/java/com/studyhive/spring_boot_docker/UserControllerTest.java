@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.util.Map;
@@ -23,9 +22,8 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        userController = new UserController();
         userRepository = mock(UserRepository.class);
-        ReflectionTestUtils.setField(userController, "userRepository", userRepository);
+        userController = new UserController(userRepository);
     }
 
     @Test
@@ -37,11 +35,13 @@ class UserControllerTest {
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ResponseEntity<User> response = userController.createUser(user, jwt(Map.of("email", "jwt@example.com")));
+        User savedUser = userController.createUser(
+                user,
+                jwt(Map.of("email", "jwt@example.com", "jti", "jwt-id"))
+        );
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getEmail()).isEqualTo("jwt@example.com");
+        assertThat(savedUser.getEmail()).isEqualTo("jwt@example.com");
+        assertThat(savedUser.getUserId()).isEqualTo("jwt-id");
         verify(userRepository).save(user);
     }
 

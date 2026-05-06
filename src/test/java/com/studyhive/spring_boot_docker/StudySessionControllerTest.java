@@ -5,9 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,49 +27,63 @@ class StudySessionControllerTest {
 
     @BeforeEach
     void setUp() {
-        studySessionController = new StudySessionController();
         studySessionRepository = mock(StudySessionRepository.class);
         studyGroupRepository = mock(StudyGroupRepository.class);
+        studySessionController = new StudySessionController(studySessionRepository, studyGroupRepository);
+    }
 
-        ReflectionTestUtils.setField(studySessionController, "studySessionRepository", studySessionRepository);
-        ReflectionTestUtils.setField(studySessionController, "studyGroupRepository", studyGroupRepository);
+    @Test
+    void createSessionReturnsUnauthorizedWhenJwtMissing() {
+        ResponseEntity<StudySessionResponse> response = studySessionController.createSession(request(42L), null);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     void createSessionReturnsNotFoundWhenGroupDoesNotExist() {
-        StudySession session = new StudySession();
-        session.setGroupId(42L);
         when(studyGroupRepository.findById(42L)).thenReturn(Optional.empty());
 
-        ResponseEntity<StudySession> response = studySessionController.createSession(session, jwt("owner-1"));
+        ResponseEntity<StudySessionResponse> response =
+                studySessionController.createSession(request(42L), jwt("owner-1"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void createSessionReturnsForbiddenWhenRequesterDoesNotOwnGroup() {
-        StudySession session = new StudySession();
-        session.setGroupId(12L);
-
-        StudyGroup group = new StudyGroup();
-        group.setCreatorId("owner-1");
+        StudyGroup group = groupOwnedBy("owner-1");
         when(studyGroupRepository.findById(12L)).thenReturn(Optional.of(group));
 
-        ResponseEntity<StudySession> response = studySessionController.createSession(session, jwt("other-user"));
+        ResponseEntity<StudySessionResponse> response =
+                studySessionController.createSession(request(12L), jwt("other-user"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
+    void createSessionReturnsCreatedSessionResponse() {
+        StudyGroup group = groupWithId(12L, "owner-1");
+        when(studyGroupRepository.findById(12L)).thenReturn(Optional.of(group));
+        when(studySessionRepository.save(any(StudySession.class))).thenAnswer(invocation -> {
+            StudySession savedSession = invocation.getArgument(0);
+            setId(savedSession, 99L);
+            return savedSession;
+        });
+
+        ResponseEntity<StudySessionResponse> response =
+                studySessionController.createSession(request(12L), jwt("owner-1"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().groupId()).isEqualTo(12L);
+        assertThat(response.getBody().title()).isEqualTo("Midterm Review");
+        assertThat(response.getBody().durationMinutes()).isEqualTo(90);
+    }
+
+    @Test
     void deleteSessionDeletesWhenRequesterOwnsParentGroup() {
-        StudySession session = new StudySession();
-        session.setGroupId(8L);
-
-        StudyGroup group = new StudyGroup();
-        group.setCreatorId("owner-1");
-
+        StudySession session = sessionForGroup(groupWithId(8L, "owner-1"), "Midterm Review");
         when(studySessionRepository.findById(7L)).thenReturn(Optional.of(session));
-        when(studyGroupRepository.findById(8L)).thenReturn(Optional.of(group));
 
         ResponseEntity<Void> response = studySessionController.deleteSession(7L, jwt("owner-1"));
 
@@ -78,18 +93,77 @@ class StudySessionControllerTest {
 
     @Test
     void getSessionsByGroupReturnsRepositoryResults() {
-        StudySession first = new StudySession();
-        first.setTitle("Midterm Review");
-        StudySession second = new StudySession();
-        second.setTitle("Project Prep");
-        when(studySessionRepository.findByGroupId(3L)).thenReturn(List.of(first, second));
+        StudyGroup group = groupWithId(3L, "owner-1");
+        StudySession first = sessionForGroup(group, "Midterm Review");
+        first.setDurationMinutes(90);
+        StudySession second = sessionForGroup(group, "Project Prep");
+        second.setDurationMinutes(60);
 
-        ResponseEntity<List<StudySession>> response = studySessionController.getSessionsByGroup(3L);
+        when(studySessionRepository.findByGroup_IdOrderByScheduledAtAsc(3L)).thenReturn(List.of(first, second));
+
+        ResponseEntity<List<StudySessionResponse>> response = studySessionController.getSessionsByGroup(3L);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(2);
-        assertThat(response.getBody()).extracting(StudySession::getTitle)
+        assertThat(response.getBody()).extracting(StudySessionResponse::title)
                 .containsExactly("Midterm Review", "Project Prep");
+        assertThat(response.getBody()).extracting(StudySessionResponse::durationMinutes)
+                .containsExactly(90, 60);
+    }
+
+    @Test
+    void updateSessionReturnsForbiddenWhenRequesterDoesNotOwnExistingSessionGroup() {
+        StudySession existingSession = sessionForGroup(groupWithId(4L, "owner-1"), "Midterm Review");
+        when(studySessionRepository.findById(20L)).thenReturn(Optional.of(existingSession));
+
+        ResponseEntity<StudySessionResponse> response =
+                studySessionController.updateSession(20L, request(4L), jwt("other-user"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    private static StudySessionRequest request(Long groupId) {
+        return new StudySessionRequest(
+                groupId,
+                "Midterm Review",
+                "Chapters 4-6",
+                OffsetDateTime.of(2026, 5, 10, 18, 0, 0, 0, ZoneOffset.UTC),
+                "Library Room 2",
+                "Bring practice problems",
+                90
+        );
+    }
+
+    private static StudyGroup groupOwnedBy(String creatorId) {
+        StudyGroup group = new StudyGroup();
+        group.setCreatorId(creatorId);
+        return group;
+    }
+
+    private static StudyGroup groupWithId(Long id, String creatorId) {
+        StudyGroup group = groupOwnedBy(creatorId);
+        group.setId(id);
+        return group;
+    }
+
+    private static StudySession sessionForGroup(StudyGroup group, String title) {
+        StudySession session = new StudySession();
+        session.setGroup(group);
+        session.setTitle(title);
+        session.setScheduledAt(OffsetDateTime.of(2026, 5, 10, 18, 0, 0, 0, ZoneOffset.UTC));
+        session.setLocation("Library Room 2");
+        session.setNotes("Bring practice problems");
+        return session;
+    }
+
+    private static void setId(StudySession session, Long id) {
+        try {
+            var field = StudySession.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(session, id);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to set StudySession id for test", e);
+        }
     }
 
     private static Jwt jwt(String subject) {
