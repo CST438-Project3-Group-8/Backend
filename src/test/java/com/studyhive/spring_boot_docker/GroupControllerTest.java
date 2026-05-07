@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,12 +21,14 @@ class GroupControllerTest {
 
     private GroupController groupController;
     private StudyGroupRepository groupRepository;
+    private GroupMemberRepository groupMemberRepository;
 
     @BeforeEach
     void setUp() {
-        groupController = new GroupController();
         groupRepository = mock(StudyGroupRepository.class);
-        ReflectionTestUtils.setField(groupController, "groupRepository", groupRepository);
+        groupMemberRepository = mock(GroupMemberRepository.class);
+
+        groupController = new GroupController(groupRepository, groupMemberRepository);
     }
 
     @Test
@@ -60,19 +61,63 @@ class GroupControllerTest {
     void getAllGroupsReturnsRepositoryResults() {
         StudyGroup first = new StudyGroup();
         first.setTitle("Math");
+
         StudyGroup second = new StudyGroup();
         second.setTitle("History");
+
         when(groupRepository.findAll()).thenReturn(List.of(first, second));
 
         ResponseEntity<List<StudyGroup>> response = groupController.getAllGroups();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(2);
-        assertThat(response.getBody()).extracting(StudyGroup::getTitle).containsExactly("Math", "History");
+        assertThat(response.getBody())
+                .extracting(StudyGroup::getTitle)
+                .containsExactly("Math", "History");
+    }
+
+    @Test
+    void joinGroupReturnsCreatedWhenUserIsNotAlreadyMember() {
+        StudyGroup group = new StudyGroup();
+        group.setMaxMembers(10);
+
+        GroupMember savedMember = new GroupMember(3L, "user-123");
+
+        when(groupRepository.findById(3L)).thenReturn(Optional.of(group));
+        when(groupMemberRepository.existsByGroupIdAndUserId(3L, "user-123")).thenReturn(false);
+        when(groupMemberRepository.countByGroupId(3L)).thenReturn(0L);
+        when(groupMemberRepository.save(any(GroupMember.class))).thenReturn(savedMember);
+
+        ResponseEntity<?> response = groupController.joinGroup(3L, jwt("user-123"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isInstanceOf(GroupMember.class);
+
+        GroupMember body = (GroupMember) response.getBody();
+        assertThat(body.getGroupId()).isEqualTo(3L);
+        assertThat(body.getUserId()).isEqualTo("user-123");
+    }
+
+    @Test
+    void joinGroupReturnsConflictWhenAlreadyMember() {
+        StudyGroup group = new StudyGroup();
+
+        when(groupRepository.findById(3L)).thenReturn(Optional.of(group));
+        when(groupMemberRepository.existsByGroupIdAndUserId(3L, "user-123")).thenReturn(true);
+
+        ResponseEntity<?> response = groupController.joinGroup(3L, jwt("user-123"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
 
     private static Jwt jwt(String subject) {
         Instant issuedAt = Instant.now();
-        return new Jwt("token", issuedAt, issuedAt.plusSeconds(300), Map.of("alg", "none"), Map.of("sub", subject));
+        return new Jwt(
+                "token",
+                issuedAt,
+                issuedAt.plusSeconds(300),
+                Map.of("alg", "none"),
+                Map.of("sub", subject)
+        );
     }
 }
