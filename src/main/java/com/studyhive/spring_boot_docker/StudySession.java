@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
@@ -28,6 +29,9 @@ public class StudySession {
 
     @Column(name = "scheduled_at")
     private OffsetDateTime scheduledAt;
+
+    @Column(name = "created_at", updatable = false)
+    private OffsetDateTime createdAt;
 
     private String location;
     private String notes;
@@ -71,6 +75,10 @@ public class StudySession {
         this.scheduledAt = scheduledAt;
     }
 
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     public String getLocation() {
         return location;
     }
@@ -93,5 +101,12 @@ public class StudySession {
 
     public void setDurationMinutes(Integer durationMinutes) {
         this.durationMinutes = durationMinutes;
+    }
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = OffsetDateTime.now();
+        }
     }
 }
