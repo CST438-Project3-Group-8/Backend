@@ -2,8 +2,6 @@ package com.studyhive.spring_boot_docker;
 
 import java.util.Objects;
 import jakarta.persistence.*;
-
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -28,60 +26,38 @@ public class User {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(length = 30)
     private OauthProvider oauthProvider;
 
     @Size(max = 500)
     @Column(length = 500)
     private String bio;
 
-    protected User() {
-    }
+    @Size(max = 200)
+    @Column(length = 200)
+    private String major;
 
-    public Integer getId() {
-        return id;
-    }
+    protected User() {}
 
-    public String getUserId() {
-        return userId;
-    }
+    public Integer getId() { return id; }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getEmail() {
-        return email;
-    }
+    public OauthProvider getOauthProvider() { return oauthProvider; }
+    public void setOauthProvider(OauthProvider oauthProvider) { this.oauthProvider = oauthProvider; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
 
-    public OauthProvider getOauthProvider() {
-        return oauthProvider;
-    }
-
-    public void setOauthProvider(OauthProvider oauthProvider) {
-        this.oauthProvider = oauthProvider;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
+    public String getMajor() { return major; }
+    public void setMajor(String major) { this.major = major; }
 
     @Override
     public boolean equals(Object o) {
@@ -90,7 +66,5 @@ public class User {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id, email);
-    }
+    public int hashCode() { return Objects.hash(id, email); }
 }
