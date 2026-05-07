@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,9 +36,7 @@ public class UserController {
         if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         User incomingUser = user != null ? user : new User();
-        User persistedUser = userRepository.findByUserId(jwt.getSubject())
-                .stream()
-                .findFirst()
+        User persistedUser = findExistingUser(jwt)
                 .orElseGet(User::new);
 
         persistedUser.setUserId(jwt.getSubject());
@@ -153,10 +152,15 @@ public class UserController {
     }
 
     private User findOrCreateCurrentUser(Jwt jwt) {
+        return findExistingUser(jwt)
+                .orElseGet(() -> userRepository.save(newUserFromJwt(jwt)));
+    }
+
+    private java.util.Optional<User> findExistingUser(Jwt jwt) {
         return userRepository.findByUserId(jwt.getSubject())
                 .stream()
                 .findFirst()
-                .orElseGet(() -> userRepository.save(newUserFromJwt(jwt)));
+                .or(() -> userRepository.findByEmail(jwt.getClaimAsString("email")));
     }
 
     private User newUserFromJwt(Jwt jwt) {
@@ -179,6 +183,11 @@ public class UserController {
 
         Object appMetadata = jwt.getClaim("app_metadata");
         if (appMetadata instanceof Map<?, ?> metadata) {
+            OauthProvider providerFromProviders = preferredProviderFromProviders(metadata.get("providers"));
+            if (providerFromProviders != null) {
+                return providerFromProviders;
+            }
+
             OauthProvider provider = providerFromValue(metadata.get("provider"));
             if (provider != null) {
                 return provider;
@@ -190,7 +199,7 @@ public class UserController {
             return provider;
         }
 
-        throw new IllegalArgumentException("Unable to determine oauth provider from JWT claims");
+        return OauthProvider.EMAIL;
     }
 
     private OauthProvider providerFromValue(Object value) {
@@ -199,10 +208,43 @@ public class UserController {
         }
 
         return switch (providerName.trim().toLowerCase()) {
+            case "email" -> OauthProvider.EMAIL;
             case "google" -> OauthProvider.GOOGLE;
             case "github" -> OauthProvider.GITHUB;
             default -> null;
         };
+    }
+
+    private OauthProvider preferredProviderFromProviders(Object value) {
+        if (!(value instanceof List<?> providers) || providers.isEmpty()) {
+            return null;
+        }
+
+        List<OauthProvider> resolvedProviders = new ArrayList<>();
+        for (Object providerValue : providers) {
+            OauthProvider provider = providerFromValue(providerValue);
+            if (provider != null && !resolvedProviders.contains(provider)) {
+                resolvedProviders.add(provider);
+            }
+        }
+
+        if (resolvedProviders.isEmpty()) {
+            return null;
+        }
+
+        List<OauthProvider> socialProviders = resolvedProviders.stream()
+                .filter(provider -> provider != OauthProvider.EMAIL)
+                .toList();
+
+        if (socialProviders.size() == 1) {
+            return socialProviders.get(0);
+        }
+
+        if (resolvedProviders.size() == 1) {
+            return resolvedProviders.get(0);
+        }
+
+        return null;
     }
 
     private String defaultNameFor(Jwt jwt) {

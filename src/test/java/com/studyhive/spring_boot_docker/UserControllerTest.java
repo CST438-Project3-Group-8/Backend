@@ -38,6 +38,7 @@ class UserControllerTest {
         user.setEmail("wrong@example.com");
 
         when(userRepository.findByUserId("user-123")).thenReturn(List.of());
+        when(userRepository.findByEmail("jwt@example.com")).thenReturn(java.util.Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ResponseEntity<User> response = userController.createUser(
@@ -61,6 +62,7 @@ class UserControllerTest {
     @Test
     void createUserAllowsEmptyBodyForLoginBootstrap() {
         when(userRepository.findByUserId("user-123")).thenReturn(List.of());
+        when(userRepository.findByEmail("bootstrap@example.com")).thenReturn(java.util.Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ResponseEntity<User> response = userController.createUser(
@@ -83,6 +85,7 @@ class UserControllerTest {
     @Test
     void getMyProfileAutoCreatesUserWhenMissing() {
         when(userRepository.findByUserId("user-123")).thenReturn(List.of());
+        when(userRepository.findByEmail("new.user@example.com")).thenReturn(java.util.Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ResponseEntity<User> response = userController.getMyProfile(
@@ -99,6 +102,81 @@ class UserControllerTest {
         assertThat(response.getBody().getEmail()).isEqualTo("new.user@example.com");
         assertThat(response.getBody().getName()).isEqualTo("new.user");
         assertThat(response.getBody().getOauthProvider()).isEqualTo(OauthProvider.GITHUB);
+    }
+
+    @Test
+    void createUserReusesExistingUserWithMatchingEmail() {
+        User existingUser = new User();
+        existingUser.setEmail("jusmartinez@csumb.edu");
+        existingUser.setName("Justin");
+        existingUser.setOauthProvider(OauthProvider.GOOGLE);
+
+        when(userRepository.findByUserId("new-sub-123")).thenReturn(List.of());
+        when(userRepository.findByEmail("jusmartinez@csumb.edu")).thenReturn(java.util.Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ResponseEntity<User> response = userController.createUser(
+                null,
+                jwt(Map.of(
+                        "sub", "new-sub-123",
+                        "email", "jusmartinez@csumb.edu",
+                        "app_metadata", Map.of("provider", "google")
+                ))
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getUserId()).isEqualTo("new-sub-123");
+        assertThat(response.getBody().getEmail()).isEqualTo("jusmartinez@csumb.edu");
+        assertThat(response.getBody().getName()).isEqualTo("Justin");
+        assertThat(response.getBody().getOauthProvider()).isEqualTo(OauthProvider.GOOGLE);
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    void createUserFallsBackToEmailProviderWhenSocialProviderIsAmbiguous() {
+        when(userRepository.findByUserId("user-123")).thenReturn(List.of());
+        when(userRepository.findByEmail("linked@example.com")).thenReturn(java.util.Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ResponseEntity<User> response = userController.createUser(
+                null,
+                jwt(Map.of(
+                        "sub", "user-123",
+                        "email", "linked@example.com",
+                        "app_metadata", Map.of(
+                                "provider", "email",
+                                "providers", List.of("email", "google", "github")
+                        )
+                ))
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getOauthProvider()).isEqualTo(OauthProvider.EMAIL);
+    }
+
+    @Test
+    void createUserPrefersSingleSocialProviderFromProvidersList() {
+        when(userRepository.findByUserId("user-123")).thenReturn(List.of());
+        when(userRepository.findByEmail("social@example.com")).thenReturn(java.util.Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ResponseEntity<User> response = userController.createUser(
+                null,
+                jwt(Map.of(
+                        "sub", "user-123",
+                        "email", "social@example.com",
+                        "app_metadata", Map.of(
+                                "provider", "email",
+                                "providers", List.of("email", "google")
+                        )
+                ))
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getOauthProvider()).isEqualTo(OauthProvider.GOOGLE);
     }
 
     @Test
