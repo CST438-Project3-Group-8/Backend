@@ -27,6 +27,8 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/healthz").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/groups").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/groups/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/groups/*/membership").permitAll()
