@@ -37,7 +37,7 @@ public class User {
     @Column(length = 200)
     private String major;
 
-    protected User() {}
+    public User() {}
 
     public Integer getId() { return id; }
 
