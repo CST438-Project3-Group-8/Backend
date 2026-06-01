@@ -22,13 +22,19 @@ class GroupControllerTest {
     private GroupController groupController;
     private StudyGroupRepository groupRepository;
     private GroupMemberRepository groupMemberRepository;
+    private StudySessionRepository studySessionRepository;
 
     @BeforeEach
     void setUp() {
         groupRepository = mock(StudyGroupRepository.class);
         groupMemberRepository = mock(GroupMemberRepository.class);
+        studySessionRepository = mock(StudySessionRepository.class);
 
-        groupController = new GroupController(groupRepository, groupMemberRepository);
+        groupController = new GroupController(
+                groupRepository,
+                groupMemberRepository,
+                studySessionRepository
+        );
     }
 
     @Test

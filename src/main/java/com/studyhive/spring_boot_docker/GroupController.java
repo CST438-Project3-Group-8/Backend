@@ -1,10 +1,12 @@
 package com.studyhive.spring_boot_docker;
 
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+
 
 import java.util.List;
 import java.util.Map;
@@ -15,13 +17,16 @@ public class GroupController {
 
     private final StudyGroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final StudySessionRepository studySessionRepository ;
 
     public GroupController(
             StudyGroupRepository groupRepository,
-            GroupMemberRepository groupMemberRepository
+            GroupMemberRepository groupMemberRepository,
+            StudySessionRepository studySessionRepository
     ) {
         this.groupRepository = groupRepository;
         this.groupMemberRepository = groupMemberRepository;
+        this.studySessionRepository = studySessionRepository;
     }
 
     // Create group
@@ -135,6 +140,7 @@ public class GroupController {
 
     // Delete group
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<Void> deleteGroup(
             @PathVariable Long id,
             @AuthenticationPrincipal Jwt jwt
@@ -151,7 +157,10 @@ public class GroupController {
                         return new ResponseEntity<Void>(HttpStatus.FORBIDDEN);
                     }
 
+                    groupMemberRepository.deleteAllByGroupId(id);
+                    studySessionRepository.deleteAllByGroupId(id);
                     groupRepository.delete(group);
+
                     return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
                 })
                 .orElse(ResponseEntity.notFound().build());

@@ -33,22 +33,40 @@ public class UserController {
             @RequestBody(required = false) User user,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String email = jwt.getClaimAsString("email");
+
+        if (!hasText(email)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
 
         User incomingUser = user != null ? user : new User();
+
         User persistedUser = findExistingUser(jwt)
                 .orElseGet(User::new);
 
         persistedUser.setUserId(jwt.getSubject());
-        persistedUser.setEmail(jwt.getClaimAsString("email"));
-        persistedUser.setName(hasText(incomingUser.getName()) ? incomingUser.getName() : coalesce(persistedUser.getName(), defaultNameFor(jwt)));
+        persistedUser.setEmail(email);
+        persistedUser.setName(
+                hasText(incomingUser.getName())
+                        ? incomingUser.getName()
+                        : coalesce(persistedUser.getName(), defaultNameFor(jwt))
+        );
         persistedUser.setBio(coalesce(incomingUser.getBio(), persistedUser.getBio()));
         persistedUser.setMajor(coalesce(incomingUser.getMajor(), persistedUser.getMajor()));
-        persistedUser.setOauthProvider(resolveOauthProvider(incomingUser.getOauthProvider(), persistedUser.getOauthProvider(), jwt));
+        persistedUser.setOauthProvider(
+                resolveOauthProvider(
+                        incomingUser.getOauthProvider(),
+                        persistedUser.getOauthProvider(),
+                        jwt
+                )
+        );
 
         return ResponseEntity.ok(userRepository.save(persistedUser));
     }
-
     @GetMapping
     public ResponseEntity<Map<String, Object>> getUser(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

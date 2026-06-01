@@ -27,6 +27,8 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/healthz").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/groups").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/groups/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/groups/*/membership").permitAll()
@@ -46,7 +48,9 @@ public class SecurityConfig {
 
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "http://localhost:8080"
+                "http://localhost:8080",
+                //for frontend
+                "https://web-aila.onrender.com"
         ));
 
         config.setAllowedMethods(List.of(

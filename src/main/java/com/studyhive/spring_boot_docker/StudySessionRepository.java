@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface StudySessionRepository extends JpaRepository<StudySession, Long> {
     List<StudySession> findByGroup_IdOrderByScheduledAtAsc(Long groupId);
+    void deleteAllByGroupId(Long groupId);
 }
